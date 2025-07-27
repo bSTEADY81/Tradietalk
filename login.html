@@ -1,0 +1,49 @@
+<!--
+  login.html – Sign in to TradieTalk AI
+
+  This page provides a simple login form for existing users. Credentials are
+  validated against values stored in the browser’s localStorage by the
+  accompanying script.js.  If the credentials match, the user is
+  redirected to the dashboard.  Otherwise, an error message is shown.
+
+  For demonstration purposes only – this is not a secure authentication
+  mechanism and should not be used in production.
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In – TradieTalk AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-blue-50 flex items-center justify-center">
+    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
+      <h1 class="text-2xl font-bold text-center mb-6">Sign In</h1>
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
+          <input id="loginEmail" type="email" required class="mt-1 w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
+          <input id="loginPassword" type="password" required class="mt-1 w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <p id="loginError" class="hidden text-sm text-red-600">Invalid email or password.</p>
+        <button type="submit" class="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Sign In</button>
+      </form>
+      <p class="mt-4 text-sm text-center">
+        Don’t have an account?
+        <a href="signup.html" class="text-blue-600 hover:underline">Sign up</a>
+      </p>
+    </div>
+    <script src="script.js"></script>
+    <script>
+      // Attach login handler from script.js
+      document.getElementById('loginForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        loginUser();
+      });
+    </script>
+  </body>
+</html>
