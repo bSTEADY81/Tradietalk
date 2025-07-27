@@ -54,8 +54,8 @@ function registerUser() {
   users[email] = { name, email, password };
   saveUsers(users);
   localStorage.setItem('currentUser', email);
-  // Redirect to dashboard
-  window.location.href = 'dashboard.html';
+  // Redirect to the voice assistant page on successful sign‑up
+  window.location.href = 'voice.html';
 }
 
 /**
@@ -75,7 +75,8 @@ function loginUser() {
   }
   // Set session
   localStorage.setItem('currentUser', email);
-  window.location.href = 'dashboard.html';
+  // Redirect to the voice assistant page on successful login
+  window.location.href = 'voice.html';
 }
 
 /**
