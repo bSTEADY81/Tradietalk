@@ -72,8 +72,11 @@
         firstScript.parentNode.insertBefore(scriptEl, firstScript);
         scriptEl.onload = function () {
           // Replace these placeholders with your own public API key and assistant ID from Vapi
-          const apiKey = 510336f5-e488-47ef-8c8d-2c3c69592e53;
-          const assistant = TradieTalk Agent;
+          // NOTE: These values have been set using your Vapi dashboard.  The apiKey should
+          // remain private.  If you need to rotate your key or use a different assistant
+          // simply update the strings below.
+          const apiKey = '510336f5-e488-47cf-8c8d-2c3c69592e53';
+          const assistant = 'd803b8c2-1cc4-4048-b6fe-adf98b556cfe';
           // Initialise the Vapi widget.  You can customise the button
           // appearance via the `config` object – see Vapi docs for details.
           window.vapiInstance = window.vapiSDK.run({
