@@ -1,0 +1,106 @@
+<!--
+  voice.html – Voice assistant screen for TradieTalk AI
+
+  After a user signs in, they land on this page.  It introduces a voice
+  assistant powered by Vapi and guides them through the quoting
+  process.  Users can click the Start button to initiate a live
+  conversation with their configured Vapi assistant.  A link back to
+  the quote dashboard is provided so users can continue to build
+  detailed quotes after the voice session.  To enable the voice
+  integration, replace the placeholder values for `YOUR_PUBLIC_API_KEY`
+  and `YOUR_ASSISTANT_ID` with the real values from your Vapi
+  dashboard.
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voice Agent – TradieTalk AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-blue-50 min-h-screen flex flex-col">
+    <!-- Header -->
+    <nav class="bg-white shadow">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="index.html" class="text-lg font-bold text-blue-600">TradieTalk AI</a>
+        <div>
+          <a href="dashboard.html" class="mr-4 text-sm text-gray-700 hover:underline">Dashboard</a>
+          <a href="#" id="logoutLink" class="text-sm text-gray-700 hover:underline">Log Out</a>
+        </div>
+      </div>
+    </nav>
+    <!-- Main content -->
+    <main class="flex-1 flex flex-col items-center justify-center p-6">
+      <h1 class="text-3xl font-bold mb-4">Voice Assistant</h1>
+      <p class="mb-6 text-center max-w-md text-gray-700">
+        Use our voice assistant to get step‑by‑step guidance on preparing and
+        sending quotes.  Click the button below and speak to start a
+        conversation.
+      </p>
+      <!-- Container for Vapi widget if needed -->
+      <div id="voiceWidgetContainer" class="mb-4"></div>
+      <button
+        id="startVoiceBtn"
+        class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+      >
+        Start Voice Session
+      </button>
+      <p id="voiceStatus" class="mt-4 text-gray-600"></p>
+      <a href="dashboard.html" class="mt-8 inline-block text-blue-600 hover:underline">
+        Go to Quote Dashboard
+      </a>
+    </main>
+    <script src="script.js"></script>
+    <script>
+      // Attach logout handler using helper from script.js
+      const logoutLink = document.getElementById('logoutLink');
+      if (logoutLink) {
+        logoutLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          logoutUser();
+        });
+      }
+      // Dynamically load the Vapi HTML widget script and configure the assistant
+      (function (d, t) {
+        const scriptEl = d.createElement(t);
+        const firstScript = d.getElementsByTagName(t)[0];
+        scriptEl.src =
+          'https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js';
+        scriptEl.defer = true;
+        scriptEl.async = true;
+        firstScript.parentNode.insertBefore(scriptEl, firstScript);
+        scriptEl.onload = function () {
+          // Replace these placeholders with your own public API key and assistant ID from Vapi
+          const apiKey = 'YOUR_PUBLIC_API_KEY';
+          const assistant = 'YOUR_ASSISTANT_ID';
+          // Initialise the Vapi widget.  You can customise the button
+          // appearance via the `config` object – see Vapi docs for details.
+          window.vapiInstance = window.vapiSDK.run({
+            apiKey: apiKey,
+            assistant: assistant,
+            config: {
+              position: 'right',
+              theme: {
+                color: '#2563EB'
+              }
+            }
+          });
+          // Connect our own start button to the Vapi instance
+          const startBtn = document.getElementById('startVoiceBtn');
+          const statusEl = document.getElementById('voiceStatus');
+          startBtn.addEventListener('click', () => {
+            statusEl.textContent = 'Connecting…';
+            window.vapiInstance.start();
+          });
+          window.vapiInstance.on('call-start', () => {
+            statusEl.textContent = 'Call started. You can speak now.';
+          });
+          window.vapiInstance.on('call-end', () => {
+            statusEl.textContent = 'Call ended.';
+          });
+        };
+      })(document, 'script');
+    </script>
+  </body>
+</html>
