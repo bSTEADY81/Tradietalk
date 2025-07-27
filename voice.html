@@ -51,7 +51,9 @@
         Go to Quote Dashboard
       </a>
     </main>
-    <script src="script.js"></script>
+  <!-- Load Supabase client library.  It attaches a global `supabase` object used in script.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.umd.min.js"></script>
+  <script src="script.js"></script>
     <script>
       // Attach logout handler using helper from script.js
       const logoutLink = document.getElementById('logoutLink');

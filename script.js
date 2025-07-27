@@ -10,6 +10,24 @@
 
 // ---------------------- Authentication Helpers ----------------------
 
+// Initialise Supabase client if the library is available.  The URL and anon
+// key are intentionally left as placeholders so you can configure them
+// without committing secrets to the repository.  Replace the values
+// below with your project's URL (e.g. https://PROJECT_ID.supabase.co) and
+// anon key, or set them via environment variables at build time.
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+let supabase = null;
+if (typeof window !== 'undefined' && window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
+  try {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (err) {
+    // If Supabase fails to initialise (e.g. missing library), supabase will remain null
+    console.warn('Failed to initialise Supabase client:', err);
+  }
+}
+
 /**
  * Retrieve the map of users stored in localStorage.  Returns an
  * object keyed by email.  If nothing exists yet, returns an empty
@@ -43,19 +61,36 @@ function registerUser() {
   const email = document.getElementById('signupEmail').value.trim().toLowerCase();
   const password = document.getElementById('signupPassword').value;
   const errorEl = document.getElementById('signupError');
+  errorEl.classList.add('hidden');
 
-  const users = getUsers();
-  if (users[email]) {
-    errorEl.textContent = 'That email is already registered.';
-    errorEl.classList.remove('hidden');
-    return;
+  // If Supabase is configured use it for authentication, otherwise fall back to localStorage
+  if (supabase) {
+    (async () => {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name } }
+      });
+      if (error) {
+        errorEl.textContent = error.message;
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      // On successful sign‑up redirect to the voice assistant page
+      window.location.href = 'voice.html';
+    })();
+  } else {
+    const users = getUsers();
+    if (users[email]) {
+      errorEl.textContent = 'That email is already registered.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+    users[email] = { name, email, password };
+    saveUsers(users);
+    localStorage.setItem('currentUser', email);
+    window.location.href = 'voice.html';
   }
-  // Create user record
-  users[email] = { name, email, password };
-  saveUsers(users);
-  localStorage.setItem('currentUser', email);
-  // Redirect to the voice assistant page on successful sign‑up
-  window.location.href = 'voice.html';
 }
 
 /**
@@ -67,24 +102,47 @@ function loginUser() {
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
   const errorEl = document.getElementById('loginError');
-  const users = getUsers();
-  const user = users[email];
-  if (!user || user.password !== password) {
-    errorEl.classList.remove('hidden');
-    return;
+  errorEl.classList.add('hidden');
+
+  if (supabase) {
+    (async () => {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        // Show generic invalid credentials message
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      window.location.href = 'voice.html';
+    })();
+  } else {
+    const users = getUsers();
+    const user = users[email];
+    if (!user || user.password !== password) {
+      errorEl.classList.remove('hidden');
+      return;
+    }
+    localStorage.setItem('currentUser', email);
+    window.location.href = 'voice.html';
   }
-  // Set session
-  localStorage.setItem('currentUser', email);
-  // Redirect to the voice assistant page on successful login
-  window.location.href = 'voice.html';
 }
 
 /**
  * Log out the current user by removing the session from localStorage.
  */
 function logoutUser() {
-  localStorage.removeItem('currentUser');
-  window.location.href = 'login.html';
+  // Sign out of Supabase if configured
+  (async () => {
+    if (supabase) {
+      try {
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.warn('Error signing out of Supabase:', err);
+      }
+    }
+    // Remove fallback session
+    localStorage.removeItem('currentUser');
+    window.location.href = 'login.html';
+  })();
 }
 
 // ---------------------- Dashboard Logic ----------------------
@@ -93,13 +151,29 @@ function logoutUser() {
  * Initialise the dashboard when the DOM is ready.  Sets up event
  * listeners, populates voices, and ensures the user is authenticated.
  */
-function initDashboard() {
-  // Redirect to login if not logged in
-  const currentUser = localStorage.getItem('currentUser');
-  if (!currentUser) {
-    window.location.href = 'login.html';
-    return;
+async function initDashboard() {
+  // Redirect to login if the user is not authenticated.  Prefer Supabase session if configured.
+  if (supabase) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html';
+        return;
+      }
+    } catch (err) {
+      console.warn('Error retrieving Supabase session:', err);
+      window.location.href = 'login.html';
+      return;
+    }
+  } else {
+    const currentUser = localStorage.getItem('currentUser');
+    if (!currentUser) {
+      window.location.href = 'login.html';
+      return;
+    }
   }
+
+  // At this point, the user is authenticated (either via Supabase or fallback). Continue initialisation.
 
   // Attach logout handler
   const logoutLink = document.getElementById('logoutLink');
