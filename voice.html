@@ -96,7 +96,7 @@
           const statusEl = document.getElementById('voiceStatus');
           startBtn.addEventListener('click', () => {
             statusEl.textContent = 'Connecting…';
-            window.vapiInstance.start();
+            window.vapiInstance.start(assistant);
           });
           window.vapiInstance.on('call-start', () => {
             statusEl.textContent = 'Call started. You can speak now.';
