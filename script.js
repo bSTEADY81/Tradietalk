@@ -1,5 +1,6 @@
+
 /*
- * script.js – shared client-side logic for TradieTalk AI
+ * script.js – shared client-side logic for TradieTalk AI
  *
  * This file contains functions for user authentication (sign up, log in,
  * log out) as well as the logic required for the dashboard: voice
@@ -128,6 +129,74 @@ function loginUser() {
     }
     localStorage.setItem('currentUser', email);
     window.location.href = 'voice.html';
+  }
+}
+
+/**
+ * Reset password for a user using Supabase Auth.
+ * Sends a password reset email to the provided email address.
+ */
+function resetPassword() {
+  const email = document.getElementById('resetEmail').value.trim().toLowerCase();
+  const messageEl = document.getElementById('resetMessage');
+  const sendResetBtn = document.getElementById('sendResetBtn');
+  
+  if (!email) {
+    messageEl.textContent = 'Please enter your email address.';
+    messageEl.className = 'text-sm text-red-600';
+    messageEl.classList.remove('hidden');
+    return;
+  }
+
+  // Disable button and show loading state
+  sendResetBtn.disabled = true;
+  sendResetBtn.textContent = 'Sending...';
+  messageEl.classList.add('hidden');
+
+  if (supabase) {
+    (async () => {
+      try {
+        const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password.html`
+        });
+        
+        if (error) {
+          messageEl.textContent = error.message;
+          messageEl.className = 'text-sm text-red-600';
+          messageEl.classList.remove('hidden');
+          sendResetBtn.disabled = false;
+          sendResetBtn.textContent = 'Send Reset Link';
+        } else {
+          messageEl.textContent = 'Password reset email sent! Check your inbox and follow the instructions.';
+          messageEl.className = 'text-sm text-green-600';
+          messageEl.classList.remove('hidden');
+          sendResetBtn.textContent = 'Email Sent';
+          
+          // Auto-close modal after 3 seconds
+          setTimeout(() => {
+            document.getElementById('forgotPasswordModal').classList.add('hidden');
+            document.getElementById('resetEmail').value = '';
+            messageEl.classList.add('hidden');
+            sendResetBtn.disabled = false;
+            sendResetBtn.textContent = 'Send Reset Link';
+          }, 3000);
+        }
+      } catch (err) {
+        messageEl.textContent = 'An unexpected error occurred. Please try again.';
+        messageEl.className = 'text-sm text-red-600';
+        messageEl.classList.remove('hidden');
+        sendResetBtn.disabled = false;
+        sendResetBtn.textContent = 'Send Reset Link';
+        console.error('Password reset error:', err);
+      }
+    })();
+  } else {
+    // Fallback for when Supabase is not configured
+    messageEl.textContent = 'Password reset is not available. Please contact support.';
+    messageEl.className = 'text-sm text-orange-600';
+    messageEl.classList.remove('hidden');
+    sendResetBtn.disabled = false;
+    sendResetBtn.textContent = 'Send Reset Link';
   }
 }
 
